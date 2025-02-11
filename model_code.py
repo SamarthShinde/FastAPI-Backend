@@ -11,10 +11,12 @@ available_models = {
 
 def get_response(model_name: str, message: str) -> str:
     """
-    Calls the Ollama API with the selected model and returns the full response.
+    Calls the Ollama API with the selected model and yields partial responses
+    as they are generated.
     """
     if model_name not in available_models:
-        return "Error: Model not found!"
+        yield "Error: Model not found!"
+        return
 
     url = f"{OLLAMA_REMOTE_URL}"
     payload = {
@@ -27,18 +29,15 @@ def get_response(model_name: str, message: str) -> str:
         response = requests.post(url, json=payload, headers=headers, stream=True)
         response.raise_for_status()
 
-        # Process streamed response
-        full_response = ""
+        # Process streamed response and yield each partial output
         for line in response.iter_lines():
             if line:
                 try:
                     json_data = json.loads(line)
                     if "response" in json_data:
-                        full_response += json_data["response"] + " "
+                        yield json_data["response"] + " "
                 except json.JSONDecodeError:
                     pass  # Ignore decoding errors from partial JSON lines
 
-        return full_response.strip() if full_response else "No response generated"
-
     except requests.exceptions.RequestException as e:
-        return f"Request failed: {str(e)}"
+        yield f"Request failed: {str(e)}"
