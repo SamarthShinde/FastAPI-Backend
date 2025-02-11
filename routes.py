@@ -8,6 +8,7 @@ from schemas import ChatRequest
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from config import SECRET_KEY, ALGORITHM
+from fastapi.responses import StreamingResponse  # <-- New import
 
 router = APIRouter()
 router.include_router(auth_router)
@@ -27,14 +28,22 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
 @router.post("/chat")
 def chat(request: ChatRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    """ Process user message & save chat history in background """
+    """ Process user message & save chat history in background using streaming response """
     
-    response = get_response(request.model_name, request.message)
+    # Assume get_response is now a generator that yields partial outputs
+    response_generator = get_response(request.model_name, request.message)
+    final_response = ""  # Will accumulate the full response
 
-    # Store chat in the background (non-blocking)
-    background_tasks.add_task(save_chat, user.id, request.model_name, request.message, response, db)
+    def generate():
+        nonlocal final_response
+        # Yield each chunk as it is generated
+        for chunk in response_generator:
+            final_response += chunk
+            yield chunk
+        # Once complete, store the full chat history in the background
+        background_tasks.add_task(save_chat, user.id, request.model_name, request.message, final_response, db)
 
-    return {"response": response}
+    return StreamingResponse(generate(), media_type="text/plain")
 
 def save_chat(user_id, model_used, message, response, db):
     """ Helper function to store chat asynchronously """
