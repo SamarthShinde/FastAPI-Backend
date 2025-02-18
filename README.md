@@ -1,3 +1,7 @@
+Here’s the **updated README.md** for your GitHub repository, reflecting the latest changes and modifications:
+
+---
+
 # FastAPI Backend - Hosted on Railway
 
 ## 📌 Overview
@@ -31,8 +35,8 @@ The backend is deployed on **Railway**, ensuring smooth deployment, authenticati
 
 ### **1️⃣ Clone the Repository**
 ```bash
- git clone https://github.com/SamarthShinde/Audio_Classification.git
- cd Audio_Classification
+git clone https://github.com/SamarthShinde/Audio_Classification.git
+cd Audio_Classification
 ```
 
 ### **2️⃣ Set Up Virtual Environment (Optional but Recommended)**
@@ -107,6 +111,18 @@ curl -X POST "https://fastapi-backend-production-5677.up.railway.app/chat" \
          }'
 ```
 
+### **4️⃣ Fetch Chat History (Authenticated Request)**
+```bash
+curl -X GET "https://fastapi-backend-production-5677.up.railway.app/chat/history" \
+     -H "Authorization: Bearer your_generated_jwt_token"
+```
+
+### **5️⃣ List Available Models**
+```bash
+curl -X GET "https://fastapi-backend-production-5677.up.railway.app/models"
+```
+
+---
 
 ## 📜 Notes
 - Replace `your_generated_jwt_token` with the actual token received from login.
@@ -128,3 +144,17 @@ For any issues, feel free to reach out:
 📧 **samarth.shinde505@gmail.com**
 📌 **GitHub:** [SamarthShinde](https://github.com/SamarthShinde)
 
+---
+
+## 🚀 Changelog
+### **Latest Updates (2025-02-19)**
+- Added **Google Authentication** support.
+- Integrated **OTP-based email verification** for secure registration.
+- Improved **chat history storage** with timestamps.
+- Optimized **requirements.txt** for production deployment.
+- Fixed **CORS issues** for frontend compatibility.
+- Enhanced **error handling** for better debugging.
+
+---
+
+This README reflects the latest changes and provides clear instructions for setup, deployment, and API usage. Let me know if you need further adjustments! 🚀
