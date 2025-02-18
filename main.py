@@ -24,5 +24,6 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         app,
-        host="0.0.0.0",  # Changed from 127.0.0.1
-        port=int(os.getenv("PORT", 8000)))  # Use Railway's port
+        host="0.0.0.0",  # Required for Railway
+        port=int(os.getenv("PORT", 8000))  # Railway sets $PORT
+    )
