@@ -9,6 +9,13 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    
+class GoogleTokenRequest(BaseModel):
+    id_token: str
+
+class OTPVerificationRequest(BaseModel):
+    email: str
+    otp: str
 
 class ChatRequest(BaseModel):
     model_name: str

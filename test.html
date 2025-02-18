@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <title>Google Sign-In Test</title>
+  <script>
+    function handleCredentialResponse(response) {
+      console.log("ID token:", response.credential);
+      // Optionally, display the token on the page for copy/paste
+      document.getElementById("token").textContent = response.credential;
+    }
+    window.onload = function () {
+      google.accounts.id.initialize({
+        client_id: "306823103408-d41bf64qp50qvup16hpdm4h110i4r23f.apps.googleusercontent.com",
+        callback: handleCredentialResponse
+      });
+      google.accounts.id.renderButton(
+        document.getElementById("buttonDiv"),
+        { theme: "outline", size: "large" }
+      );
+      google.accounts.id.prompt(); // Optional prompt
+    };
+  </script>
+</head>
+<body>
+  <h2>Google Sign-In Test</h2>
+  <div id="buttonDiv"></div>
+  <pre id="token"></pre>
+</body>
+</html>
