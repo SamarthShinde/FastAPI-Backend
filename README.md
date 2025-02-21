@@ -1,4 +1,4 @@
-```markdown
+
 # FastAPI Backend – Hosted on Railway
 
 ## Overview
@@ -41,7 +41,7 @@ Deployed on **Railway**, it ensures seamless deployment, authentication, and inf
 - **Railway** – Deployment platform  
 - **SMTP** – Email sending for OTP-based verification
 
----
+
 
 ## Setup & Installation
 
