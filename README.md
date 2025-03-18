@@ -1,6 +1,6 @@
 # Ollama Chat Application
 
-A full-stack chat application that uses Ollama for AI-powered conversations. The application features user authentication, chat history management, and support for multiple AI models.
+A full-stack chat application that uses Ollama for AI-powered conversations. The application features user authentication with OTP verification, chat history management, and support for multiple AI models.
 
 ## Features
 
@@ -9,7 +9,7 @@ A full-stack chat application that uses Ollama for AI-powered conversations. The
 - Conversation history management
 - Multiple AI model support
 - User settings and preferences
-- Responsive web interface
+- Dark/Light theme support
 
 ## Tech Stack
 
@@ -17,6 +17,150 @@ A full-stack chat application that uses Ollama for AI-powered conversations. The
 - Database: SQLite
 - AI: Ollama
 - Authentication: JWT + Email OTP
+
+## API Documentation
+
+### Authentication
+
+1. Register a new user (sends OTP):
+```bash
+curl -X POST http://localhost:8000/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "email": "your.email@example.com",
+    "password": "your_password"
+  }'
+```
+
+2. Verify OTP after registration:
+```bash
+curl -X POST http://localhost:8000/verify-otp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "your.email@example.com",
+    "otp": "123456"
+  }'
+```
+
+3. Login with password:
+```bash
+curl -X POST http://localhost:8000/login/password \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "your.email@example.com",
+    "password": "your_password"
+  }'
+```
+
+4. Request OTP for login:
+```bash
+curl -X POST http://localhost:8000/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "your.email@example.com"
+  }'
+```
+
+### Chat Operations
+
+1. Send a message:
+```bash
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "message": "Hello, how are you?"
+  }'
+```
+
+2. Get current conversation messages:
+```bash
+curl -X GET http://localhost:8000/conversations/current/messages \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+3. Get all conversations:
+```bash
+curl -X GET http://localhost:8000/conversations \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+4. Create new conversation:
+```bash
+curl -X POST http://localhost:8000/conversations/new \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+5. Switch conversation:
+```bash
+curl -X POST http://localhost:8000/conversations/{conversation_id}/switch \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+6. Archive conversation:
+```bash
+curl -X DELETE http://localhost:8000/conversations/{conversation_id} \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### User Settings
+
+1. Get user settings:
+```bash
+curl -X GET http://localhost:8000/settings \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+2. Update user settings:
+```bash
+curl -X PUT http://localhost:8000/settings \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "theme": "dark",
+    "preferred_model": "llama2",
+    "language_preference": "English",
+    "notifications_enabled": true
+  }'
+```
+
+### User Profile
+
+1. Get current user info:
+```bash
+curl -X GET http://localhost:8000/users/me \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+2. Update user profile:
+```bash
+curl -X PUT http://localhost:8000/users/me \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "username": "new_username",
+    "email": "new.email@example.com"
+  }'
+```
+
+### AI Models
+
+1. Get available models:
+```bash
+curl -X GET http://localhost:8000/models/available \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+2. Update active model:
+```bash
+curl -X POST http://localhost:8000/models/update \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "model_name": "llama2"
+  }'
+```
 
 ## Project Structure
 
@@ -61,7 +205,7 @@ git clone https://github.com/SamarthShinde/FastAPI-Backend.git
 cd FastAPI-Backend
 ```
 
-2. Create and activate a virtual environment:
+2. Create and activate virtual environment:
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -72,7 +216,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Create a `.env` file in the root directory with the following variables:
+4. Set up environment variables in `.env`:
 ```
 DATABASE_URL=sqlite:///./chat.db
 SECRET_KEY=your-secret-key
@@ -86,153 +230,27 @@ python DB/init_db.py
 
 ## Running the Application
 
-1. Start the Ollama service:
+1. Start Ollama service:
 ```bash
 ollama serve
 ```
 
-2. Start the server:
+2. Start the backend server:
 ```bash
 python server.py
 ```
 
-3. Access the API documentation at:
-   - Swagger UI: http://localhost:8000/docs
-   - ReDoc: http://localhost:8000/redoc
-
-## API Usage Examples
-
-### Authentication
-
-1. Register a new user:
+3. Start the frontend development server:
 ```bash
-curl -X POST http://localhost:8000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "testuser",
-    "email": "test@example.com",
-    "password": "your_password"
-  }'
+cd frontend
+npm install
+npm run dev
 ```
 
-2. Verify OTP (after registration):
-```bash
-curl -X POST http://localhost:8000/auth/verify-otp \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "otp": "123456"
-  }'
-```
+## API Documentation
 
-3. Login:
-```bash
-curl -X POST http://localhost:8000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "password": "your_password"
-  }'
-```
-
-4. Forgot Password:
-```bash
-curl -X POST http://localhost:8000/auth/forgot-password \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com"
-  }'
-```
-
-5. Reset Password:
-```bash
-curl -X POST http://localhost:8000/auth/reset-password \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "otp": "123456",
-    "new_password": "new_password"
-  }'
-```
-
-### Chat Operations
-
-1. Send a message to the AI:
-```bash
-curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -d '{
-    "message": "Hello, how are you today?"
-  }'
-```
-
-2. Get current conversation history:
-```bash
-curl -X GET http://localhost:8000/conversations/current/messages \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-3. List all conversations:
-```bash
-curl -X GET http://localhost:8000/conversations \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-4. Create a new conversation:
-```bash
-curl -X POST http://localhost:8000/conversations \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -d '{
-    "title": "New Chat"
-  }'
-```
-
-5. Delete a conversation:
-```bash
-curl -X DELETE http://localhost:8000/conversations/1 \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-### User Settings
-
-1. Get user settings:
-```bash
-curl -X GET http://localhost:8000/users/me/settings \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-2. Update user settings:
-```bash
-curl -X PUT http://localhost:8000/users/me/settings \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -d '{
-    "theme": "dark",
-    "preferred_model": "llama2"
-  }'
-```
-
-## API Endpoints
-
-### Authentication
-- `POST /auth/register`: Register a new user
-- `POST /auth/login`: Login with email and password
-- `POST /auth/verify-otp`: Verify email OTP
-- `POST /auth/forgot-password`: Request password reset
-- `POST /auth/reset-password`: Reset password with OTP
-
-### Chat
-- `POST /chat`: Send a message to the AI
-- `GET /conversations/current/messages`: Get current conversation history
-- `GET /conversations`: List all conversations
-- `POST /conversations`: Create a new conversation
-- `DELETE /conversations/{conversation_id}`: Delete a conversation
-
-### User Settings
-- `GET /users/me/settings`: Get user settings
-- `PUT /users/me/settings`: Update user settings
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
 
 ## Contributing
 

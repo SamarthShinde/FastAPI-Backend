@@ -247,22 +247,22 @@ async def verify_otp_and_login(otp_data: OtpVerifyRequest):
 @app.post("/login/password", response_model=TokenResponse)
 async def login_with_password(user_data: UserLogin):
     """Login a user with password (fallback method)."""
-    user = authenticate_user(user_data.email, user_data.password)
+    user_dict = authenticate_user(user_data.email, user_data.password)
     
-    if not user:
+    if not user_dict:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    access_token = create_access_token(user.user_id)
+    access_token = create_access_token(user_dict["user_id"])
     
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user_id": user.user_id,
-        "username": user.username
+        "user_id": user_dict["user_id"],
+        "username": user_dict["username"]
     }
 
 # --- User Routes ---

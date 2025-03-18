@@ -38,7 +38,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against a hash."""
     return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
-def authenticate_user(email: str, password: str) -> Optional[User]:
+def authenticate_user(email: str, password: str) -> Optional[Dict[str, Any]]:
     """Authenticate a user by email and password."""
     db = SessionLocal()
     try:
@@ -50,7 +50,13 @@ def authenticate_user(email: str, password: str) -> Optional[User]:
         user.last_login = datetime.now()
         db.commit()
         
-        return user
+        # Return user data as a dictionary
+        return {
+            "user_id": user.user_id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role
+        }
     finally:
         db.close()
 
