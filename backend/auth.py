@@ -213,11 +213,13 @@ def register_with_otp(username: str, email: str, password: str) -> Tuple[bool, s
         # Create user
         user = create_user(username, email, password)
         
-        # Send OTP
-        success, message = send_otp_for_email(email)
-        if not success:
-            return False, message
+        # Skip OTP verification for now
+        return True, "User registered successfully."
         
-        return True, "User registered. OTP sent for verification."
+        # Commented out OTP verification for now
+        # success, message = send_otp_for_email(email)
+        # if not success:
+        #     return False, message
+        # return True, "User registered. OTP sent for verification."
     except ValueError as e:
         return False, str(e) 

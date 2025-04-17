@@ -5,18 +5,29 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime, date
 import uvicorn
 import json
+import logging
 from fastapi.responses import JSONResponse
 
-from DB.database import SessionLocal
-from DB.models import User, Conversation, Message, UserSettings, Subscription, Payment
-from backend.auth import (
-    authenticate_user, create_user, create_access_token, verify_token,
-    send_otp_for_email, verify_otp, register_with_otp
-)
-from backend.chat_service import ChatService
-from model.ai_agents import available_models
-from backend.email_utils import send_welcome_email
-from backend.api_dummy import router as dummy_router
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+try:
+    from DB.database import SessionLocal
+    from DB.models import User, Conversation, Message, UserSettings, Subscription, Payment
+    from backend.auth import (
+        authenticate_user, create_user, create_access_token, verify_token,
+        send_otp_for_email, verify_otp, register_with_otp
+    )
+    from backend.chat_service import ChatService
+    from model.ai_agents import available_models
+    from backend.email_utils import send_welcome_email
+    from backend.api_dummy import router as dummy_router
+    
+    logger.info("✅ Successfully imported all modules")
+except Exception as e:
+    logger.error("❌ Error importing modules: %s", str(e))
+    raise
 
 app = FastAPI(title="Ollama Chat API")
 
@@ -183,20 +194,25 @@ def get_db():
 
 @app.post("/register", response_model=Dict[str, str])
 async def register(user_data: RegisterOtpRequest):
-    """Register a new user and send OTP for verification."""
-    success, message = register_with_otp(
-        user_data.username, 
-        user_data.email, 
-        user_data.password
-    )
-    
-    if not success:
+    """Register a new user."""
+    try:
+        logger.debug("Attempting to register user: %s", user_data.username)
+        # Create user directly
+        user = create_user(user_data.username, user_data.email, user_data.password)
+        logger.info("✅ Successfully registered user: %s", user_data.username)
+        return {"message": "User registered successfully"}
+    except ValueError as e:
+        logger.error("❌ Registration error: %s", str(e))
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=message
+            detail=str(e)
         )
-    
-    return {"message": message}
+    except Exception as e:
+        logger.error("❌ Unexpected error during registration: %s", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
 @app.post("/login", response_model=Dict[str, str])
 async def login_request_otp(email_data: EmailRequest):
