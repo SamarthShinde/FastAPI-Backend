@@ -1,47 +1,40 @@
-from sqlalchemy import Column, Integer, String, Boolean, Enum, ForeignKey, TIMESTAMP, Text, DECIMAL, Date
+from sqlalchemy import Column, Integer, String, Boolean, Enum, ForeignKey, TIMESTAMP, Text, DECIMAL
 from sqlalchemy.orm import relationship
-from .database import Base
+from DB.database import Base
 
 class User(Base):
     __tablename__ = "Users"
-
-    user_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(100), unique=True, nullable=False)
     email = Column(String(255), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     created_at = Column(TIMESTAMP, server_default="CURRENT_TIMESTAMP")
     last_login = Column(TIMESTAMP, nullable=True)
     role = Column(Enum("admin", "user", "premium user"), default="user")
-
     conversations = relationship("Conversation", back_populates="user")
     settings = relationship("UserSettings", back_populates="user")
 
 class UserSettings(Base):
     __tablename__ = "User_Settings"
-
     setting_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("Users.user_id"), nullable=False)
     theme = Column(Enum("light", "dark"), default="light")
     preferred_model = Column(Enum("Llama", "Phi", "DeepSeek"), default="Llama")
     language_preference = Column(String(50), default="English")
     notifications_enabled = Column(Boolean, default=True)
-
     user = relationship("User", back_populates="settings")
 
 class Conversation(Base):
     __tablename__ = "Conversations"
-
     conversation_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("Users.user_id"), nullable=False)
     created_at = Column(TIMESTAMP, server_default="CURRENT_TIMESTAMP")
     status = Column(Enum("active", "archived"), default="active")
-
     user = relationship("User", back_populates="conversations")
     messages = relationship("Message", back_populates="conversation")
 
 class Message(Base):
     __tablename__ = "Messages"
-
     message_id = Column(Integer, primary_key=True, autoincrement=True)
     conversation_id = Column(Integer, ForeignKey("Conversations.conversation_id"), nullable=False)
     user_id = Column(Integer, ForeignKey("Users.user_id"), nullable=True)
@@ -49,12 +42,10 @@ class Message(Base):
     message_text = Column(Text, nullable=False)
     timestamp = Column(TIMESTAMP, server_default="CURRENT_TIMESTAMP")
     response_time_ms = Column(Integer, nullable=True)
-
     conversation = relationship("Conversation", back_populates="messages")
 
 class Subscription(Base):
     __tablename__ = "Subscriptions"
-
     subscription_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("Users.user_id"), nullable=False)
     plan = Column(String(50), default="free")
@@ -65,12 +56,10 @@ class Subscription(Base):
     last_payment_id = Column(String(100), nullable=True)
     created_at = Column(TIMESTAMP, server_default="CURRENT_TIMESTAMP")
     updated_at = Column(TIMESTAMP, server_default="CURRENT_TIMESTAMP", onupdate="CURRENT_TIMESTAMP")
-    
     user = relationship("User", backref="subscription")
 
 class Payment(Base):
     __tablename__ = "Payments"
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("Users.user_id"), nullable=False)
     payment_id = Column(String(100), unique=True, nullable=False)
@@ -80,5 +69,4 @@ class Payment(Base):
     status = Column(String(50), default="pending")
     payment_method = Column(String(50), nullable=False)
     timestamp = Column(TIMESTAMP, nullable=False)
-    
-    user = relationship("User", backref="payments") 
+    user = relationship("User", backref="payments")
