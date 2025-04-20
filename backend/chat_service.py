@@ -4,8 +4,9 @@ from datetime import datetime
 from DB.database import SessionLocal
 from DB.models import User, Conversation, Message, UserSettings
 from model.ai_agents import ChatAgent, available_models
-from .db_utils import get_or_create_conversation, save_message, get_user_settings
+from .db_utils import get_or_create_conversation, save_message
 from backend.payment_utils import check_user_subscription
+from fastapi import HTTPException, status
 
 class ChatService:
     """Service to handle chat interactions and database operations."""
@@ -14,9 +15,13 @@ class ChatService:
         """Initialize chat service for a specific user."""
         self.user_id = user_id
         self.db = SessionLocal()
-        self.conversation = self._get_active_conversation()
-        self.settings = self._get_user_settings()
-        self.agent = self._create_agent()
+        try:
+            self.conversation = self._get_active_conversation()
+            self.settings = self._get_user_settings()
+            self.agent = self._create_agent()
+        except Exception as e:
+            self.db.close()
+            raise e
     
     def _get_active_conversation(self) -> Conversation:
         """Get or create an active conversation for the user."""
@@ -24,18 +29,26 @@ class ChatService:
     
     def _get_user_settings(self) -> UserSettings:
         """Get user settings or create default settings."""
-        settings = get_user_settings(self.db, self.user_id)
-        if not settings:
-            # Create default settings
-            settings = UserSettings(
-                user_id=self.user_id,
-                theme="light",
-                preferred_model=list(available_models.keys())[0]
+        try:
+            settings = (
+                self.db.query(UserSettings)
+                .filter(UserSettings.user_id == self.user_id)
+                .first()
             )
-            self.db.add(settings)
-            self.db.commit()
-            self.db.refresh(settings)
-        return settings
+            if not settings:
+                # Create default settings
+                settings = UserSettings(
+                    user_id=self.user_id,
+                    theme="light",
+                    preferred_model=list(available_models.keys())[0]
+                )
+                self.db.add(settings)
+                self.db.commit()
+                self.db.refresh(settings)
+            return settings
+        except Exception as e:
+            self.db.rollback()
+            raise e
     
     def _create_agent(self) -> ChatAgent:
         """Create an AI agent based on user settings."""
@@ -47,58 +60,67 @@ class ChatService:
     
     def send_message(self, message_text: str) -> Dict[str, Any]:
         """Send a message and get a response from the AI."""
-        # Get subscription info (using dummy implementation that always returns unlimited access)
-        subscription = check_user_subscription(self.user_id)
-        
-        # Record start time for response timing
-        start_time = time.time()
-        
-        # Save user message to database
-        user_message = save_message(
-            db=self.db,
-            conversation_id=self.conversation.conversation_id,
-            user_id=self.user_id,
-            role="user",
-            message_text=message_text
-        )
-        
-        # Get context length from subscription
-        context_length = subscription["details"].get("context_length", 20)
-        
-        # Get response from AI agent
         try:
-            # Call the agent with context length
-            response_text = self.agent.chat(
-                message_text, 
-                stream=False, 
-                context_length=context_length
+            # Get subscription info
+            subscription = check_user_subscription(self.user_id)
+            
+            # Record start time for response timing
+            start_time = time.time()
+            
+            # Save user message to database
+            user_message = save_message(
+                session=self.db,
+                conversation_id=self.conversation.conversation_id,
+                user_id=self.user_id,
+                role="user",
+                message_text=message_text
             )
             
-            # If response is empty or contains an error message, use a fallback response
-            if not response_text or response_text.startswith("Error"):
-                response_text = "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again later."
+            # Get context length from subscription
+            context_length = subscription["details"].get("context_length", 20)
+            
+            # Get response from AI agent
+            try:
+                # Call the agent with context length
+                response_text = self.agent.chat(
+                    message_text, 
+                    stream=False, 
+                    context_length=context_length
+                )
+                
+                # If response is empty or contains an error message, use a fallback response
+                if not response_text or response_text.startswith("Error"):
+                    print(f"Error in AI response: {response_text}")
+                    response_text = "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again later."
+            except Exception as e:
+                print(f"Error in AI chat: {str(e)}")
+                response_text = f"I'm sorry, I encountered an error while processing your request: {str(e)}"
+            
+            # Calculate response time in milliseconds
+            response_time_ms = int((time.time() - start_time) * 1000)
+            
+            # Save assistant message to database
+            assistant_message = save_message(
+                session=self.db,
+                conversation_id=self.conversation.conversation_id,
+                user_id=None,  # AI responses don't have a user_id
+                role="assistant",
+                message_text=response_text,
+                response_time_ms=response_time_ms
+            )
+            
+            return {
+                "message_id": assistant_message.message_id,
+                "content": response_text,
+                "timestamp": assistant_message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                "response_time_ms": response_time_ms
+            }
         except Exception as e:
-            response_text = "I'm sorry, I encountered an error while processing your request. Please try again later."
-        
-        # Calculate response time in milliseconds
-        response_time_ms = int((time.time() - start_time) * 1000)
-        
-        # Save assistant message to database
-        assistant_message = save_message(
-            db=self.db,
-            conversation_id=self.conversation.conversation_id,
-            user_id=None,  # AI responses don't have a user_id
-            role="assistant",
-            message_text=response_text,
-            response_time_ms=response_time_ms
-        )
-        
-        return {
-            "message_id": assistant_message.message_id,
-            "content": response_text,
-            "timestamp": assistant_message.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            "response_time_ms": response_time_ms
-        }
+            print(f"Error in send_message: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error processing chat message: {str(e)}"
+            )
     
     def get_conversation_history(self) -> List[Dict[str, Any]]:
         """Get the conversation history for the current conversation."""

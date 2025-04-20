@@ -79,6 +79,47 @@ FastAPI-Backend/
    python server.py
    ```
 
+## 📱 API Usage
+
+### Authentication
+
+#### Register
+```bash
+curl -X POST http://localhost:8000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "yourpassword", "name": "Your Name"}'
+```
+
+#### Login
+```bash
+curl -X POST http://localhost:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "yourpassword"}'
+```
+
+#### Google OAuth Login
+1. Click the "Login with Google" button on the frontend
+2. Select your Google account
+3. Grant necessary permissions
+
+### Chat
+
+#### Start a New Chat
+```bash
+curl -X POST http://localhost:8000/api/chat/new \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "gpt-3.5-turbo", "message": "Hello, how are you?"}'
+```
+
+#### Continue Chat
+```bash
+curl -X POST http://localhost:8000/api/chat/continue \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"conversation_id": "CONVERSATION_ID", "message": "Your message here"}'
+```
+
 ## 🔧 Configuration
 
 ### Database Configuration
@@ -98,12 +139,10 @@ The application supports both SQLite and MySQL/PostgreSQL:
    ```
 
 ### Other Configuration
-
-- `SECRET_KEY`: JWT secret key
-- `ALGORITHM`: JWT algorithm (default: HS256)
-- `ACCESS_TOKEN_EXPIRE_MINUTES`: Token expiration time
-- `OLLAMA_REMOTE_URL`: URL for Ollama API
-- Email and payment configurations
+- JWT Secret Key: `JWT_SECRET_KEY`
+- Google OAuth Client ID: `GOOGLE_CLIENT_ID`
+- Google OAuth Client Secret: `GOOGLE_CLIENT_SECRET`
+- LLM API Keys: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.
 
 ## 🧪 Testing
 
@@ -136,3 +175,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Samarth Shinde
 - GitHub: [SamarthShinde](https://github.com/SamarthShinde)
 - Email: samarth.shinde505@gmail.com
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request

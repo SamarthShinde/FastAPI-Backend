@@ -46,6 +46,7 @@ class ChatAgent:
         }
         
         try:
+            print(f"Calling Ollama API with model: {self.model_name}")
             # Make the API call
             response = requests.post(url, json=payload, headers=headers)
             response.raise_for_status()
@@ -53,6 +54,7 @@ class ChatAgent:
             # Parse the response
             try:
                 json_response = response.json()
+                print(f"Ollama API response: {json_response}")
                 
                 if "response" in json_response:
                     # Save context for future calls
@@ -62,14 +64,25 @@ class ChatAgent:
                     # Return the response text
                     return json_response["response"]
                 else:
-                    error_msg = f"No 'response' field in Ollama API response"
+                    error_msg = f"No 'response' field in Ollama API response: {json_response}"
+                    print(error_msg)
                     return error_msg
             except json.JSONDecodeError as e:
                 error_msg = f"Error decoding JSON from response: {str(e)}"
+                print(error_msg)
                 return error_msg
             
-        except Exception as e:
+        except requests.exceptions.ConnectionError as e:
+            error_msg = f"Failed to connect to Ollama API at {url}: {str(e)}"
+            print(error_msg)
+            return error_msg
+        except requests.exceptions.RequestException as e:
             error_msg = f"Error calling Ollama API: {str(e)}"
+            print(error_msg)
+            return error_msg
+        except Exception as e:
+            error_msg = f"Unexpected error in Ollama API call: {str(e)}"
+            print(error_msg)
             return error_msg
 
     def chat(self, message: str, stream: bool = False, context_length: int = 5):
