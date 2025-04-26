@@ -1,0 +1,92 @@
+body {
+    background-color: #f0f0f0;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background-color: #007bff;
+    color: white;
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+    
+}
+header h1 {
+    font-size: 2rem;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+}
+
+.chat-area {
+    width: 100%;
+    flex-grow: 1;
+    padding: 20px;
+    margin-top: 50px;
+    margin-bottom: 60px;
+    overflow: auto;
+    scrollbar-width: none;
+}
+
+.chat-area::-webkit-scrollbar {
+    display: none;
+}
+
+.message {
+    background-color: lightgray;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.user-message {
+    background-color: lightblue;
+}
+
+.bot-message {
+    background-color: lightgreen;
+}
+
+.loading {
+    width: 30px;
+    height: 30px;
+    border: 5px solid transparent;
+    border-top-color: blue;
+    border-radius: 50%;
+    animation: rotate 1s linear infinite;
+}
+
+.input-area {
+    position: fixed;
+    min-height: 40px;
+    bottom: 0;
+    width: 100%;
+    background-color: white;
+    padding: 10px;
+    display: flex;
+}
+
+.input-area input[type="text"] {
+    flex-grow: 1;
+    height: 40px;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.input-area button {
+    height: 40px;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

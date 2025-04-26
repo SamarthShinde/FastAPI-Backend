@@ -357,6 +357,19 @@ async def update_user(
 
 # --- Chat Routes ---
 
+@app.post("/", response_model=MessageResponse)
+async def send_message_no_auth(
+    message_data: MessageRequest,
+):
+    """Send a message to the AI and get a response."""
+    chat_service = ChatService(1)
+    try:
+        response = chat_service.send_message(message_data.message)
+        return response
+    finally:
+        chat_service.close()
+
+
 @app.post("/chat", response_model=MessageResponse)
 async def send_message(
     message_data: MessageRequest,
