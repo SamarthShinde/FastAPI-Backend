@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
             chatArea.appendChild(loadingIndicator);
             chatArea.scrollTop = chatArea.scrollHeight;
 
-            fetch('/message', {
+            fetch('/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
