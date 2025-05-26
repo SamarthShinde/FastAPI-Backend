@@ -106,7 +106,7 @@ curl -X POST http://localhost:8000/api/auth/login \
 
 #### Start a New Chat
 ```bash
-curl -X POST http://localhost:8000/api/chat/new \
+curl -X POST http://localhost:8000/conversations/new \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"model": "gpt-3.5-turbo", "message": "Hello, how are you?"}'
