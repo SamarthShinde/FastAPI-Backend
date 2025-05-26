@@ -1,81 +1,90 @@
 import os
 import sys
 from sqlalchemy import text
+
+# Ensure project root is on the Python path so that the DB package can be imported
+ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 from DB.database import engine, SessionLocal
-from DB.models import User, UserSettings
+from DB.models import User, UserSettings, ThemeType
+from DB.base import Base
+
+
+def setup_module(module):
+    """Create all database tables before tests run."""
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    if "sqlite" in str(engine.url):
+        with engine.begin() as conn:
+            conn.execute(text("PRAGMA foreign_keys = ON"))
+
+
+def teardown_module(module):
+    """Drop all tables after tests complete."""
+    Base.metadata.drop_all(bind=engine)
+
 
 def test_database_connection():
-    """Test database connection and basic operations."""
-    print("\n🔍 Testing Database Connection")
-    print("=" * 50)
-    
-    try:
-        # Test 1: Basic connection
-        print("\n1️⃣ Testing basic connection...")
-        with engine.connect() as conn:
-            result = conn.execute(text("SELECT 1"))
-            print("✅ Basic connection successful!")
-        
-        # Test 2: Create test user
-        print("\n2️⃣ Testing user creation...")
-        db = SessionLocal()
-        try:
-            # Create a test user
-            test_user = User(
-                username="test_user",
-                email="test@example.com",
-                password_hash="test_hash"
-            )
-            db.add(test_user)
-            db.commit()
-            print("✅ Test user created successfully!")
-            
-            # Test 3: Create user settings
-            print("\n3️⃣ Testing user settings creation...")
-            test_settings = UserSettings(
-                user_id=test_user.user_id,
-                theme="light",
-                preferred_model="Llama",
-                language_preference="English"
-            )
-            db.add(test_settings)
-            db.commit()
-            print("✅ Test user settings created successfully!")
-            
-            # Test 4: Query the created data
-            print("\n4️⃣ Testing data retrieval...")
-            retrieved_user = db.query(User).filter(User.username == "test_user").first()
-            if retrieved_user:
-                print(f"✅ User retrieved: {retrieved_user.username}")
-                print(f"✅ User settings: {retrieved_user.settings.theme}")
-            else:
-                print("❌ Failed to retrieve test user")
-            
-            # Clean up test data
-            print("\n🧹 Cleaning up test data...")
-            db.delete(test_settings)
-            db.delete(test_user)
-            db.commit()
-            print("✅ Test data cleaned up successfully!")
-            
-        except Exception as e:
-            db.rollback()
-            print(f"❌ Error during database operations: {str(e)}")
-        finally:
-            db.close()
-            
-        print("\n✅ All database tests completed successfully!")
-        return True
-        
-    except Exception as e:
-        print(f"❌ Database connection failed: {str(e)}")
-        return False
+    """Verify that a basic database connection works."""
+    with engine.connect() as conn:
+        result = conn.execute(text("SELECT 1")).scalar()
+    assert result == 1
 
-if __name__ == "__main__":
-    # Add the current directory to the Python path
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    if current_dir not in sys.path:
-        sys.path.insert(0, current_dir)
-    
-    # Run the tests
-    test_database_connection() 
+
+def test_user_creation_and_cleanup():
+    """Ensure a user and related settings can be created and removed."""
+    db = SessionLocal()
+    try:
+        user = User(
+            username="test_user",
+            email="test@example.com",
+            password_hash="test_hash",
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        assert user.user_id is not None
+
+        settings = UserSettings(
+            user_id=user.user_id,
+            theme=ThemeType.LIGHT,
+            preferred_model="Llama",
+            language_preference="English",
+        )
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
+        # refresh user instance so relationship can be loaded
+        db.refresh(user)
+        assert settings.setting_id is not None
+
+        retrieved = db.query(User).filter(User.username == "test_user").first()
+        assert retrieved is not None
+        assert retrieved.settings is not None
+        assert retrieved.settings.theme == ThemeType.LIGHT
+
+        settings_id = settings.setting_id
+        user_id = user.user_id
+        db.delete(settings)
+        db.delete(user)
+        db.commit()
+    finally:
+        db.close()
+
+    with SessionLocal() as check_db:
+        assert (
+            check_db.query(User).filter(User.username == "test_user").first()
+            is None
+        )
+        assert (
+            check_db.query(UserSettings)
+            .filter(UserSettings.setting_id == settings_id)
+            .first()
+            is None
+        )
+        assert (
+            check_db.query(UserSettings).filter(UserSettings.user_id == user_id).first()
+            is None
+        )
