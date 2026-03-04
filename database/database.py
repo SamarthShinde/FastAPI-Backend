@@ -36,7 +36,7 @@ DEFAULT_POOL_TIMEOUT = 30
 DEFAULT_POOL_RECYCLE = 1800  # 30 minutes
 
 # Load environment variables
-env_path = os.path.join(project_root, "backend", ".env")
+env_path = os.path.join(project_root, "api", ".env")
 if not os.path.exists(env_path):
     logger.warning(f"⚠️ Warning: .env file not found at {env_path}")
     # Use default SQLite configuration
@@ -58,7 +58,7 @@ else:
 # Construct database URL based on database type
 if DB_TYPE == "sqlite":
     # SQLite configuration with absolute path
-    SQLITE_DB_PATH = os.path.join(project_root, "data", "app.db")
+    SQLITE_DB_PATH = os.path.join(project_root, "database", "data", "app.db")
     os.makedirs(os.path.dirname(SQLITE_DB_PATH), exist_ok=True)
     DATABASE_URL = f"sqlite:///{SQLITE_DB_PATH}"
     logger.info("📡 Using SQLite database at: %s", SQLITE_DB_PATH)

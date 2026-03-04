@@ -11,8 +11,8 @@ if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
 # Import the database setup and models
-from DB.database import Base, DATABASE_URL, DB_TYPE, check_db_connection
-from DB.models import User, Conversation, Message, UserSettings, Subscription, Payment
+from database.database import Base, DATABASE_URL, DB_TYPE, check_db_connection
+from database.models import User, Conversation, Message, UserSettings, Subscription, Payment
 
 # Set up logger
 logger = logging.getLogger("alembic")

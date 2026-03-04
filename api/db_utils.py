@@ -7,8 +7,8 @@ from sqlalchemy import or_, and_, desc, asc, func, exc, text
 from sqlalchemy.orm import Session, joinedload, contains_eager
 from fastapi import HTTPException, status
 
-from DB.database import SessionLocal, get_db_session, with_db_session, check_db_connection, retry_with_backoff
-from DB.models import (
+from database.database import SessionLocal, get_db_session, with_db_session, check_db_connection, retry_with_backoff
+from database.models import (
     User, Conversation, Message, UserSettings, Subscription, Payment,
     UserRole, ConversationStatus, MessageRole, SubscriptionPlan
 )
@@ -96,7 +96,7 @@ def get_user_settings(session: Session, user_id: int) -> UserSettings:
             settings = UserSettings(
                 user_id=user_id,
                 theme="light",
-                preferred_model="llama3.2:3b"
+                preferred_model="qwen2.5:3b"
             )
             session.add(settings)
             session.commit()

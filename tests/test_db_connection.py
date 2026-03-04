@@ -2,14 +2,14 @@ import os
 import sys
 from sqlalchemy import text
 
-# Ensure project root is on the Python path so that the DB package can be imported
+# Ensure project root is on the Python path
 ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
-from DB.database import engine, SessionLocal
-from DB.models import User, UserSettings, ThemeType
-from DB.base import Base
+from database.database import engine, SessionLocal
+from database.models import User, UserSettings, ThemeType
+from database.base import Base
 
 
 def setup_module(module):
@@ -24,7 +24,6 @@ def setup_module(module):
 def teardown_module(module):
     """Drop all tables after tests complete."""
     Base.metadata.drop_all(bind=engine)
-
 
 def test_database_connection():
     """Verify that a basic database connection works."""

@@ -1,11 +1,11 @@
 from typing import List, Dict, Any, Optional
 import time
 from datetime import datetime
-from DB.database import SessionLocal
-from DB.models import User, Conversation, Message, UserSettings
-from model.ai_agents import ChatAgent, available_models
+from database.database import SessionLocal
+from database.models import User, Conversation, Message, UserSettings
+from ollama.ai_agents import ChatAgent, available_models
 from .db_utils import get_or_create_conversation, save_message
-from backend.payment_utils import check_user_subscription
+from api.payment_utils import check_user_subscription
 from fastapi import HTTPException, status
 
 class ChatService:

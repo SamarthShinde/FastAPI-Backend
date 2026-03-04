@@ -1,185 +1,222 @@
-# FastAPI Backend for LLM Chat Application
+# Samarth LLM Chat — Backend
 
-A robust FastAPI backend for a chat application that integrates with various LLM models.
+A full-stack AI chat application powered by [Ollama](https://ollama.com) local models, built with FastAPI + SQLite + Flutter + React.
 
-## 🚀 Features
+---
 
-- **Database Support**: 
-  - SQLite for local development
-  - MySQL/PostgreSQL for production
-  - Automatic database initialization
-  - Connection pooling for production databases
-
-- **Authentication**:
-  - JWT-based authentication
-  - Google OAuth integration
-  - Secure password hashing
-
-- **Chat Functionality**:
-  - Conversation management
-  - Message history
-  - Multiple LLM model support
-  - Response time tracking
-
-- **User Management**:
-  - User profiles
-  - Settings management
-  - Subscription handling
-  - Payment integration
-
-## 📦 Project Structure
+## Project Structure
 
 ```
-FastAPI-Backend/
-├── backend/              # Main application code
-│   ├── api.py           # API routes and endpoints
-│   ├── auth.py          # Authentication logic
-│   ├── chat_service.py  # Chat service implementation
-│   ├── config.py        # Configuration management
-│   ├── db_utils.py      # Database utilities
-│   └── .env             # Environment variables
-├── DB/                  # Database related code
-│   ├── database.py      # Database configuration
-│   ├── models.py        # SQLAlchemy models
-│   └── __init__.py      # Package initialization
-├── data/                # SQLite database storage
-├── model/               # LLM model integration
-├── tests/               # Test files
-│   └── test_db_connection.py
-├── server.py            # Application entry point
-├── requirements.txt     # Python dependencies
-└── README.md           # This file
+Samarth_LLM_Chat/
+├── backend/                   # FastAPI server (this repo)
+│   ├── server.py              # Entry point — run this to start
+│   ├── requirements.txt       # Python dependencies
+│   ├── alembic.ini            # DB migration config
+│   │
+│   ├── api/                   # Routes, auth, services, config
+│   │   ├── api.py             # All API endpoints (28 routes)
+│   │   ├── auth.py            # JWT auth + OTP
+│   │   ├── chat_service.py    # Chat logic
+│   │   ├── config.py          # Loads .env settings
+│   │   ├── db_utils.py        # DB query helpers
+│   │   ├── email_utils.py     # SMTP email (OTP)
+│   │   ├── payment_utils.py   # Razorpay integration
+│   │   └── .env               # Environment variables (secrets)
+│   │
+│   ├── database/              # Database layer
+│   │   ├── models.py          # SQLAlchemy ORM models
+│   │   ├── database.py        # Engine, session, connection pooling
+│   │   ├── base.py            # Declarative base
+│   │   ├── init_db.py         # Creates tables on startup
+│   │   ├── delete_user.py     # Utility: delete user by email
+│   │   └── data/
+│   │       └── app.db         # SQLite database file
+│   │
+│   ├── ollama/                # Local LLM integration
+│   │   ├── model_code.py      # Streaming response generator
+│   │   └── ai_agents.py       # ChatAgent class with context
+│   │
+│   ├── migrations/            # Alembic DB migrations
+│   │   ├── env.py
+│   │   ├── script.py.mako
+│   │   └── versions/
+│   │
+│   ├── static/                # Basic HTML/CSS/JS web UI
+│   │   ├── index.html
+│   │   ├── styles.css
+│   │   └── script.js
+│   │
+│   └── tests/
+│       └── test_db_connection.py
+│
+├── frontend/                  # React web app (Vite + TailwindCSS)
+├── mobile/                    # Flutter mobile app (iOS + Android)
+└── docs/                      # Project documentation
 ```
 
-## 🛠 Setup and Installation
+---
 
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd FastAPI-Backend
-   ```
+## Setup & Run
 
-2. **Create and activate virtual environment**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+### Requirements
 
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+- Python 3.9+
+- [Ollama](https://ollama.com) installed and running
+- Conda or virtualenv
 
-4. **Configure environment variables**:
-   - Copy `.env.local` to `backend/.env`
-   - Update the variables as needed
+### 1. Install dependencies
 
-5. **Run the application**:
-   ```bash
-   python server.py
-   ```
-
-## 📱 API Usage
-
-### Authentication
-
-#### Register
 ```bash
-curl -X POST http://localhost:8000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "yourpassword", "name": "Your Name"}'
+cd backend
+pip install -r requirements.txt
 ```
 
-#### Login
+### 2. Configure environment
+
+Edit `api/.env`:
+
+```env
+DB_TYPE=sqlite
+DATABASE_URL=sqlite:///database/data/app.db
+
+SECRET_KEY=your_secret_key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+OLLAMA_REMOTE_URL=http://localhost:11434/api/generate
+
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your@email.com
+SMTP_PASSWORD=your_app_password
+SENDER_EMAIL=your@email.com
+```
+
+### 3. Start Ollama and pull a model
+
 ```bash
-curl -X POST http://localhost:8000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "yourpassword"}'
+ollama serve
+ollama pull qwen2.5:3b
 ```
 
-#### Google OAuth Login
-1. Click the "Login with Google" button on the frontend
-2. Select your Google account
-3. Grant necessary permissions
+### 4. Run the server
+
+```bash
+python server.py
+```
+
+Server starts on `http://localhost:8000`
+
+---
+
+## Available Models
+
+| Model        | Size   | Notes   |
+|--------------|--------|---------|
+| `qwen2.5:3b` | 1.9 GB | Default |
+| `llama3.2:3b`| 2.0 GB |         |
+| `gemma3`     | varies |         |
+
+---
+
+## API Endpoints
+
+Interactive docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### Auth
+
+| Method | Endpoint      | Description          |
+|--------|---------------|----------------------|
+| POST   | `/register`   | Register new user    |
+| POST   | `/login`      | Login, get JWT token |
+| POST   | `/send-otp`   | Send OTP to email    |
+| POST   | `/verify-otp` | Verify OTP           |
 
 ### Chat
 
-#### Start a New Chat
+| Method | Endpoint                         | Description          |
+|--------|----------------------------------|----------------------|
+| POST   | `/chat`                          | Send a message       |
+| GET    | `/conversations`                 | List conversations   |
+| GET    | `/conversations/{id}/messages`   | Get messages         |
+| DELETE | `/conversations/{id}`            | Delete conversation  |
+
+### Models
+
+| Method | Endpoint            | Description           |
+|--------|---------------------|-----------------------|
+| GET    | `/models/available` | List available models |
+
+---
+
+## Example Usage
+
+### Register
+
 ```bash
-curl -X POST http://localhost:8000/conversations/new \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+curl -X POST http://localhost:8000/register \
   -H "Content-Type: application/json" \
-  -d '{"model": "gpt-3.5-turbo", "message": "Hello, how are you?"}'
+  -d '{"username": "john", "email": "john@example.com", "password": "secret"}'
 ```
 
-#### Continue Chat
+### Login
+
 ```bash
-curl -X POST http://localhost:8000/api/chat/continue \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+curl -X POST http://localhost:8000/login \
   -H "Content-Type: application/json" \
-  -d '{"conversation_id": "CONVERSATION_ID", "message": "Your message here"}'
+  -d '{"username": "john", "password": "secret"}'
 ```
 
-## 🔧 Configuration
+### Chat
 
-### Database Configuration
+```bash
+curl -X POST http://localhost:8000/chat \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "qwen2.5:3b", "message": "Hello!"}'
+```
 
-The application supports both SQLite and MySQL/PostgreSQL:
+---
 
-1. **SQLite (Default for local development)**:
-   ```env
-   DB_TYPE=sqlite
-   DATABASE_URL=sqlite:///data/app.db
-   ```
+## Database
 
-2. **MySQL/PostgreSQL**:
-   ```env
-   DB_TYPE=mysql  # or postgresql
-   DATABASE_URL=mysql+pymysql://user:password@host:port/database
-   ```
+SQLite by default — file at `database/data/app.db`
 
-### Other Configuration
-- JWT Secret Key: `JWT_SECRET_KEY`
-- Google OAuth Client ID: `GOOGLE_CLIENT_ID`
-- Google OAuth Client Secret: `GOOGLE_CLIENT_SECRET`
-- LLM API Keys: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.
+Tables: `Users`, `Conversations`, `Messages`, `User_Settings`, `Subscriptions`, `Payments`
 
-## 🧪 Testing
+Run migrations:
 
-Run the database tests:
+```bash
+alembic upgrade head
+```
+
+Test DB connection:
+
 ```bash
 python -m tests.test_db_connection
 ```
 
-## 📝 API Documentation
+---
 
-Once the server is running, access the API documentation at:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+## Deployment
 
-## 🔄 Recent Changes
+The backend is exposed via Cloudflare Tunnel at `https://www.ollama-app.thecit.in`
 
-- Switched to SQLite for local development
-- Improved database connection handling
-- Added connection pooling for production databases
-- Reorganized project structure
-- Added comprehensive testing
-- Updated documentation
+To restart the tunnel:
 
-## 📄 License
+```bash
+launchctl start com.cloudflare.cloudflared
+```
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+---
+
+## License
+
+MIT License — see [LICENSE](LICENSE)
 
 ## Author
 
 Samarth Shinde
+
 - GitHub: [SamarthShinde](https://github.com/SamarthShinde)
 - Email: samarth.shinde505@gmail.com
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request

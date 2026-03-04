@@ -9,12 +9,13 @@ parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
-from backend.config import OLLAMA_REMOTE_URL
+from api.config import OLLAMA_REMOTE_URL
 
 # Available models dictionary
 available_models = {
-    "llama3.2:3b": "llama3.2:3b",  # 2.0 GB
-    "gemma3": "gemma3"             # 3.3 GB
+    "qwen2.5:3b": "qwen2.5:3b",   # default - upgrade OLLAMA for qwen3.5
+    "llama3.2:3b": "llama3.2:3b",
+    "gemma3": "gemma3",
 }
 
 def get_response(model_name: str, message: str) -> str:
@@ -23,7 +24,7 @@ def get_response(model_name: str, message: str) -> str:
     as they are generated.
     """
     if model_name not in available_models:
-        yield "Error: Model not found! Available models are: llama3.2:3b and gemma3"
+        yield f"Error: Model not found! Available models are: {', '.join(available_models.keys())}"
         return
 
     url = OLLAMA_REMOTE_URL
@@ -38,7 +39,6 @@ def get_response(model_name: str, message: str) -> str:
         response = requests.post(url, json=payload, headers=headers, stream=True)
         response.raise_for_status()
 
-        # Process streamed response and yield each partial output
         for line in response.iter_lines():
             if line:
                 try:
@@ -46,7 +46,7 @@ def get_response(model_name: str, message: str) -> str:
                     if "response" in json_data:
                         yield json_data["response"]
                 except json.JSONDecodeError:
-                    pass  # Ignore decoding errors from partial JSON lines
+                    pass
 
     except requests.exceptions.RequestException as e:
-        yield f"Error: {str(e)}" 
+        yield f"Error: {str(e)}"

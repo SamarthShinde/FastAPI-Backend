@@ -18,7 +18,7 @@ if current_dir not in sys.path:
 logger.info("Added %s to Python path", current_dir)
 
 # Load environment variables from the correct path
-env_path = os.path.join(current_dir, "backend", ".env")
+env_path = os.path.join(current_dir, "api", ".env")
 load_dotenv(dotenv_path=env_path)
 logger.info("Loaded environment variables from %s", env_path)
 
@@ -26,7 +26,7 @@ def setup_database():
     """Set up the database if it doesn't exist."""
     try:
         # Import the database modules
-        from DB.init_db import init_db
+        from database.init_db import init_db
         
         logger.info("🔧 Setting up database...")
         logger.info("📡 Current working directory: %s", os.getcwd())
@@ -53,7 +53,7 @@ def main():
     
     try:
         # Import the app
-        from backend.api import app
+        from api.api import app
         logger.info("✅ Successfully imported API app")
         
         # Run the app

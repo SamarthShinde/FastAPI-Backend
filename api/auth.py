@@ -4,10 +4,10 @@ import bcrypt
 import jwt
 import threading
 import time
-from DB.database import SessionLocal
-from DB.models import User
-from backend.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
-from backend.email_utils import generate_otp, send_otp_email
+from database.database import SessionLocal
+from database.models import User
+from api.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from api.email_utils import generate_otp, send_otp_email
 
 # In-memory OTP storage with expiry
 otp_store = {}
@@ -81,7 +81,7 @@ def create_user(username: str, email: str, password: str) -> User:
             username=username,
             email=email,
             password_hash=hashed_password,
-            role="user"
+            role="USER"
         )
         
         db.add(new_user)

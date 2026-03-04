@@ -1,7 +1,7 @@
 import os
 from sqlalchemy import text
-from DB.database import engine, Base
-from DB.models import User, UserSettings, Conversation, Message, Subscription, Payment
+from database.database import engine, Base
+from database.models import User, UserSettings, Conversation, Message, Subscription, Payment
 
 def init_db():
     """Initialize the database with proper setup."""

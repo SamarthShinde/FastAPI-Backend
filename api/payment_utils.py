@@ -1,7 +1,7 @@
 from datetime import datetime
 import os
-from DB.database import SessionLocal
-from DB.models import User, Subscription
+from database.database import SessionLocal
+from database.models import User, Subscription
 
 def check_user_subscription(user_id):
     """

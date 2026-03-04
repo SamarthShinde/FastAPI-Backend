@@ -8,8 +8,8 @@ parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
-from DB.database import SessionLocal
-from DB.models import User, Conversation, Message
+from database.database import SessionLocal
+from database.models import User, Conversation, Message
 
 def delete_user_by_email(email, force=False):
     """Delete a user from the database by email."""

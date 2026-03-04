@@ -13,16 +13,16 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 try:
-    from DB.database import SessionLocal
-    from DB.models import User, Conversation, Message, UserSettings, Subscription, Payment
-    from backend.auth import (
+    from database.database import SessionLocal
+    from database.models import User, Conversation, Message, UserSettings, Subscription, Payment
+    from api.auth import (
         authenticate_user, create_user, create_access_token, verify_token,
         send_otp_for_email, verify_otp, register_with_otp
     )
-    from backend.chat_service import ChatService
-    from model.ai_agents import available_models
-    from backend.email_utils import send_welcome_email
-    from backend.api_dummy import router as dummy_router
+    from api.chat_service import ChatService
+    from ollama.ai_agents import available_models
+    from api.email_utils import send_welcome_email
+    from api.api_dummy import router as dummy_router
     
     logger.info("✅ Successfully imported all modules")
 except Exception as e:
